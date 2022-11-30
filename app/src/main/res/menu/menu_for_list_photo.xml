@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/addItems"
+        android:icon="@drawable/ic_baseline_add_circle_outline_24"
+        android:title="@string/add"
+        android:contentDescription="@string/my_beautiful_memories"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/deleteItems"
+        android:icon="@drawable/ic_baseline_delete_forever_24"
+        android:title="@string/delete"
+        android:contentDescription="@string/my_beautiful_memories"
+        app:showAsAction="ifRoom" />
+</menu>

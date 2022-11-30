@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">FotoFrame</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="my_beautiful_memories">Our Beautiful Memories</string>
+    <string name="show">show</string>
+    <string name="add">add</string>
+    <string name="delete">delete</string>
+    <string name="settings">settings</string>
+</resources>

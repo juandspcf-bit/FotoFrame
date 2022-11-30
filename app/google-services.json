@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "791589977731",
+    "project_id": "fotoframe-76118",
+    "storage_bucket": "fotoframe-76118.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791589977731:android:6fb6f8b699c78f941c25b6",
+        "android_client_info": {
+          "package_name": "com.learning.fotoframe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "791589977731-p7hvbj30l30el5ni4k9fbrq4rpopikl0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoRL0V-53bldgQlYChNYRAIokNlbDfpPM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "791589977731-p7hvbj30l30el5ni4k9fbrq4rpopikl0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
