@@ -3,19 +3,19 @@ package com.learning.fotoframe
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.NumberPicker
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.learning.fotoframe.databinding.FragmentSettingsBinding
 import com.learning.fotoframe.viewmodels.SettingsViewModel
+import com.smarteist.autoimageslider.SliderAnimations
 
 
 class SettingsFragment : Fragment() {
@@ -38,6 +38,9 @@ class SettingsFragment : Fragment() {
 
     }
 
+
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -49,24 +52,91 @@ class SettingsFragment : Fragment() {
             container,
             false
         )
+
         binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        registerForContextMenu(binding.animateTransitionButton)
+
 
         binding.SetDelayButton.setOnClickListener {
             showBottomDialog()
         }
 
+
+
         val delay = sf.getInt("sliderScrollTimeInSec", 0)
+        when(sf.getInt("transitionAnimation", 0)){
+            0-> binding.transitionAnimationTextView.text =  getString(R.string.depth_transformation)
+            1-> binding.transitionAnimationTextView.text =  getString(R.string.cube_in_depth_transformation)
+            2-> binding.transitionAnimationTextView.text =  getString(R.string.clock_spin_transformation)
+            3-> binding.transitionAnimationTextView.text =  getString(R.string.vertical_flip_transformation)
+            4-> binding.transitionAnimationTextView.text =  getString(R.string.cube_in_rotation_transformation)
+        }
         settingsViewModel.sliderScrollTimeInSec.value = delay
         val delay1 = "$delay secs"
         binding.delayTextView.text = delay1
 
+
     }
 
+
+    override fun onCreateContextMenu(
+        menu: ContextMenu,
+        v: View,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        menu.setHeaderTitle("Pick option")
+        requireActivity().menuInflater.inflate(R.menu.menu_efect_transition, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.option_1 -> {
+                editor.apply{
+                    putInt("transitionAnimation",  0)
+                    settingsViewModel.transitionAnimation.value = 0
+                    binding.transitionAnimationTextView.text =  getString(R.string.depth_transformation)
+                }
+            }
+            R.id.option_2 -> {
+                editor.apply{
+                    putInt("transitionAnimation",  1)
+                    settingsViewModel.transitionAnimation.value = 1
+                    binding.transitionAnimationTextView.text =  getString(R.string.cube_in_depth_transformation)
+                }
+            }
+            R.id.option_3 -> {
+                editor.apply{
+                    putInt("transitionAnimation",  2)
+                    settingsViewModel.transitionAnimation.value = 2
+                    binding.transitionAnimationTextView.text =  getString(R.string.clock_spin_transformation)
+                }
+            }
+
+            R.id.option_4 -> {
+                editor.apply{
+                    putInt("transitionAnimation",  3)
+                    settingsViewModel.transitionAnimation.value = 4
+                    binding.transitionAnimationTextView.text =  getString(R.string.vertical_flip_transformation)
+                }
+            }
+
+            R.id.option_5 -> {
+                editor.apply{
+                    putInt("transitionAnimation",  4)
+                    settingsViewModel.transitionAnimation.value = 4
+                    binding.transitionAnimationTextView.text =  getString(R.string.cube_in_rotation_transformation)
+                }
+            }
+
+        }
+        return super.onContextItemSelected(item)
+    }
 
     private fun showBottomDialog() {
         val dialog = BottomSheetDialog(requireContext())

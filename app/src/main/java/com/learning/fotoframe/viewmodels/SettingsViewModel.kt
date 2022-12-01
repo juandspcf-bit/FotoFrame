@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import com.learning.fotoframe.ListPhotosFragmentV2.MyLink
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+    val transitionAnimation = MutableLiveData<Int>()
     val sliderScrollTimeInSec = MutableLiveData<Int>()
 
 }

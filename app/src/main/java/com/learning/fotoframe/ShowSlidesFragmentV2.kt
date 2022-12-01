@@ -74,10 +74,21 @@ class ShowSlidesFragmentV2: Fragment() {
 
             }
             sliderView.setSliderAdapter(sliderAdapter)
-            sliderView.setIndicatorAnimation(IndicatorAnimationType.WORM)
-            sliderView.setSliderTransformAnimation(SliderAnimations.DEPTHTRANSFORMATION)
+            sliderView.setIndicatorAnimation(IndicatorAnimationType.COLOR)
+            //sliderView.setSliderTransformAnimation(SliderAnimations.VERTICALFLIPTRANSFORMATION)
             settingsViewModel.sliderScrollTimeInSec.value?.let {
                 sliderView.scrollTimeInSec = it
+            }
+
+            settingsViewModel.transitionAnimation.value?.let {
+                when(it){
+                    0-> sliderView.setSliderTransformAnimation(SliderAnimations.DEPTHTRANSFORMATION)
+                    1-> sliderView.setSliderTransformAnimation(SliderAnimations.CUBEINDEPTHTRANSFORMATION)
+                    2-> sliderView.setSliderTransformAnimation(SliderAnimations.CLOCK_SPINTRANSFORMATION)
+                    3-> sliderView.setSliderTransformAnimation(SliderAnimations.VERTICALFLIPTRANSFORMATION)
+                    4-> sliderView.setSliderTransformAnimation(SliderAnimations.CUBEINROTATIONTRANSFORMATION)
+                }
+
             }
 
 

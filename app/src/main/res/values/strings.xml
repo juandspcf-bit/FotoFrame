@@ -7,4 +7,11 @@
     <string name="add">add</string>
     <string name="delete">delete</string>
     <string name="settings">settings</string>
+    <string name="select_effect_transition">select effect Transition</string>
+    <string name="option_1">kdkads</string>
+    <string name="depth_transformation">Depth Transformation</string>
+    <string name="cube_in_depth_transformation">Cube in Depth Transformation</string>
+    <string name="clock_spin_transformation">Clock Spin Transformation</string>
+    <string name="vertical_flip_transformation">Vertical Flip Transformation</string>
+    <string name="cube_in_rotation_transformation">Cube In rotation Transformation</string>
 </resources>

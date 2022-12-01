@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/option_1"
+        android:title="@string/depth_transformation" />
+    <item android:id="@+id/option_2"
+        android:title="@string/cube_in_depth_transformation" />
+    <item android:id="@+id/option_3"
+        android:title="@string/clock_spin_transformation" />
+    <item android:id="@+id/option_4"
+        android:title="@string/vertical_flip_transformation" />
+    <item android:id="@+id/option_5"
+        android:title="@string/cube_in_rotation_transformation" />
+</menu>
