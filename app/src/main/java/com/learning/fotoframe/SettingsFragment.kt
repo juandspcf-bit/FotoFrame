@@ -16,6 +16,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.learning.fotoframe.databinding.FragmentSettingsBinding
 import com.learning.fotoframe.viewmodels.SettingsViewModel
 import com.smarteist.autoimageslider.SliderAnimations
+import com.smarteist.autoimageslider.SliderView
 
 
 class SettingsFragment : Fragment() {
@@ -60,6 +61,7 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         registerForContextMenu(binding.animateTransitionButton)
+        registerForContextMenu(binding.cycleButton)
 
 
         binding.SetDelayButton.setOnClickListener {
@@ -76,6 +78,12 @@ class SettingsFragment : Fragment() {
             3-> binding.transitionAnimationTextView.text =  getString(R.string.vertical_flip_transformation)
             4-> binding.transitionAnimationTextView.text =  getString(R.string.cube_in_rotation_transformation)
         }
+
+        when(sf.getInt("cycle", 0)){
+            0-> binding.cycleTextView.text = getString(R.string.right)
+            1-> binding.cycleTextView.text = getString(R.string.left)
+            2-> binding.cycleTextView.text = getString(R.string.back_and_forth)
+        }
         settingsViewModel.sliderScrollTimeInSec.value = delay
         val delay1 = "$delay secs"
         binding.delayTextView.text = delay1
@@ -90,8 +98,16 @@ class SettingsFragment : Fragment() {
         menuInfo: ContextMenu.ContextMenuInfo?
     ) {
         super.onCreateContextMenu(menu, v, menuInfo)
-        menu.setHeaderTitle("Pick option")
-        requireActivity().menuInflater.inflate(R.menu.menu_efect_transition, menu)
+        if(v.id==R.id.animateTransitionButton){
+            menu.setHeaderTitle("Pick option")
+            requireActivity().menuInflater.inflate(R.menu.menu_efect_transition, menu)
+        }
+
+        if(v.id==R.id.cycleButton){
+            menu.setHeaderTitle("Pick option")
+            requireActivity().menuInflater.inflate(R.menu.cycle_options_menu, menu)
+        }
+
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -100,21 +116,21 @@ class SettingsFragment : Fragment() {
                 editor.apply{
                     putInt("transitionAnimation",  0)
                     settingsViewModel.transitionAnimation.value = 0
-                    binding.transitionAnimationTextView.text =  getString(R.string.depth_transformation)
+                    saveAnimationTransformation(getString(R.string.depth_transformation))
                 }
             }
             R.id.option_2 -> {
                 editor.apply{
                     putInt("transitionAnimation",  1)
                     settingsViewModel.transitionAnimation.value = 1
-                    binding.transitionAnimationTextView.text =  getString(R.string.cube_in_depth_transformation)
+                    saveAnimationTransformation(getString(R.string.cube_in_depth_transformation))
                 }
             }
             R.id.option_3 -> {
                 editor.apply{
                     putInt("transitionAnimation",  2)
                     settingsViewModel.transitionAnimation.value = 2
-                    binding.transitionAnimationTextView.text =  getString(R.string.clock_spin_transformation)
+                    saveAnimationTransformation(getString(R.string.clock_spin_transformation))
                 }
             }
 
@@ -122,7 +138,7 @@ class SettingsFragment : Fragment() {
                 editor.apply{
                     putInt("transitionAnimation",  3)
                     settingsViewModel.transitionAnimation.value = 4
-                    binding.transitionAnimationTextView.text =  getString(R.string.vertical_flip_transformation)
+                    saveAnimationTransformation(getString(R.string.vertical_flip_transformation))
                 }
             }
 
@@ -130,12 +146,41 @@ class SettingsFragment : Fragment() {
                 editor.apply{
                     putInt("transitionAnimation",  4)
                     settingsViewModel.transitionAnimation.value = 4
-                    binding.transitionAnimationTextView.text =  getString(R.string.cube_in_rotation_transformation)
+                    saveAnimationTransformation(getString(R.string.cube_in_rotation_transformation))
+                }
+            }
+
+            R.id.cycle_option_1 -> {
+                editor.apply{
+                    putInt("cycle",  0)
+                    binding.cycleTextView.text = getString(R.string.right)
+                    commit()
+                }
+            }
+
+            R.id.cycle_option_2 -> {
+                editor.apply{
+                    putInt("cycle",  1)
+                    binding.cycleTextView.text = getString(R.string.left)
+                    commit()
+                }
+            }
+
+            R.id.cycle_option_3-> {
+                editor.apply{
+                    putInt("cycle",  2)
+                    binding.cycleTextView.text = getString(R.string.back_and_forth)
+                    commit()
                 }
             }
 
         }
         return super.onContextItemSelected(item)
+    }
+
+    private fun SharedPreferences.Editor.saveAnimationTransformation(type: String) {
+        binding.transitionAnimationTextView.text = type
+        commit()
     }
 
     private fun showBottomDialog() {

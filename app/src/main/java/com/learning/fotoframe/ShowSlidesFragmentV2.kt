@@ -1,11 +1,14 @@
 package com.learning.fotoframe
 
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.Button
 import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -14,6 +17,8 @@ import androidx.navigation.fragment.NavHostFragment
 import com.google.firebase.FirebaseApp
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.learning.fotoframe.databinding.FragmentSettingsBinding
+import com.learning.fotoframe.databinding.FragmentShowSlidesBinding
 import com.learning.fotoframe.viewmodels.AppMainViewModel
 import com.learning.fotoframe.viewmodels.SettingsViewModel
 import com.smarteist.autoimageslider.IndicatorView.animation.type.IndicatorAnimationType
@@ -23,10 +28,14 @@ import com.squareup.picasso.Picasso
 
 class ShowSlidesFragmentV2: Fragment() {
     private lateinit var settingsViewModel: SettingsViewModel
+    private lateinit var binding: FragmentShowSlidesBinding
+
     private var storageReference: StorageReference? = null
     private lateinit var sliderView: SliderView
     private lateinit var appMainViewModel: AppMainViewModel
     private lateinit var controller: NavController
+    private lateinit var sf: SharedPreferences
+    private lateinit var editor: SharedPreferences.Editor
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(requireContext())
@@ -34,6 +43,13 @@ class ShowSlidesFragmentV2: Fragment() {
         appMainViewModel = ViewModelProvider(requireActivity())[AppMainViewModel::class.java]
         settingsViewModel = ViewModelProvider(requireActivity())[SettingsViewModel::class.java]
         controller = NavHostFragment.findNavController(this)
+
+        val sharedPreferences =
+            activity?.getSharedPreferences("my_sf", AppCompatActivity.MODE_PRIVATE)
+        if(sharedPreferences !=null){
+            sf = sharedPreferences
+            editor = sf.edit()
+        }
     }
 
     override fun onCreateView(
@@ -41,7 +57,16 @@ class ShowSlidesFragmentV2: Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_show_slides, container, false)
+
+        binding = DataBindingUtil.inflate(
+            inflater,
+            R.layout.fragment_show_slides,
+            container,
+            false
+        )
+
+        binding.lifecycleOwner = viewLifecycleOwner
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -74,21 +99,23 @@ class ShowSlidesFragmentV2: Fragment() {
 
             }
             sliderView.setSliderAdapter(sliderAdapter)
-            sliderView.setIndicatorAnimation(IndicatorAnimationType.COLOR)
-            //sliderView.setSliderTransformAnimation(SliderAnimations.VERTICALFLIPTRANSFORMATION)
-            settingsViewModel.sliderScrollTimeInSec.value?.let {
-                sliderView.scrollTimeInSec = it
+            sliderView.setIndicatorAnimation(IndicatorAnimationType.SWAP)
+
+            val delay = sf.getInt("sliderScrollTimeInSec", 0)
+            sliderView.scrollTimeInSec = delay
+
+            when(sf.getInt("transitionAnimation", 0)){
+                0-> sliderView.setSliderTransformAnimation(SliderAnimations.DEPTHTRANSFORMATION)
+                1-> sliderView.setSliderTransformAnimation(SliderAnimations.CUBEINDEPTHTRANSFORMATION)
+                2-> sliderView.setSliderTransformAnimation(SliderAnimations.CLOCK_SPINTRANSFORMATION)
+                3-> sliderView.setSliderTransformAnimation(SliderAnimations.VERTICALFLIPTRANSFORMATION)
+                4-> sliderView.setSliderTransformAnimation(SliderAnimations.CUBEINROTATIONTRANSFORMATION)
             }
 
-            settingsViewModel.transitionAnimation.value?.let {
-                when(it){
-                    0-> sliderView.setSliderTransformAnimation(SliderAnimations.DEPTHTRANSFORMATION)
-                    1-> sliderView.setSliderTransformAnimation(SliderAnimations.CUBEINDEPTHTRANSFORMATION)
-                    2-> sliderView.setSliderTransformAnimation(SliderAnimations.CLOCK_SPINTRANSFORMATION)
-                    3-> sliderView.setSliderTransformAnimation(SliderAnimations.VERTICALFLIPTRANSFORMATION)
-                    4-> sliderView.setSliderTransformAnimation(SliderAnimations.CUBEINROTATIONTRANSFORMATION)
-                }
-
+            when(sf.getInt("cycle", 0)){
+                0-> sliderView.autoCycleDirection = SliderView.AUTO_CYCLE_DIRECTION_RIGHT
+                1-> sliderView.autoCycleDirection = SliderView.AUTO_CYCLE_DIRECTION_LEFT
+                2-> sliderView.autoCycleDirection = SliderView.AUTO_CYCLE_DIRECTION_BACK_AND_FORTH
             }
 
 

@@ -7,12 +7,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
@@ -270,6 +272,14 @@ class ListPhotosFragmentV2 : Fragment() {
 
     override fun onResume() {
         super.onResume()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            requireActivity().window.insetsController?.show(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+        } else {
+            val decorView = requireActivity().window.decorView
+            val flags = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_VISIBLE)
+            decorView.systemUiVisibility = flags
+        }
         fireBaseUtilsApp.getSets { strings ->
             val map = strings.map { set -> SetWithBoolean(set, isVisible) }
             showRecyclerView(map)

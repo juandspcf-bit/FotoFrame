@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/cycle_option_1"
+        android:title="@string/right" />
+    <item android:id="@+id/cycle_option_2"
+        android:title="@string/left" />
+    <item android:id="@+id/cycle_option_3"
+        android:title="@string/back_and_forth" />
+</menu>

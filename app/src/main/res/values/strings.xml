@@ -14,4 +14,7 @@
     <string name="clock_spin_transformation">Clock Spin Transformation</string>
     <string name="vertical_flip_transformation">Vertical Flip Transformation</string>
     <string name="cube_in_rotation_transformation">Cube In rotation Transformation</string>
+    <string name="right">right</string>
+    <string name="left">left</string>
+    <string name="back_and_forth">Back and Forth</string>
 </resources>
