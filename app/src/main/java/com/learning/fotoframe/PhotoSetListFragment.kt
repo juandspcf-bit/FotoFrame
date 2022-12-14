@@ -149,7 +149,7 @@ class PhotoSetListFragment : Fragment() {
                                         .addOnSuccessListener {
                                             val filter = visibleList
                                                 .filter { myLink2 -> myLink2.isVisible.not() }
-                                            appMainViewModel?.mutableLiveDataMyLink2?.value = filter
+                                            appMainViewModel?.mutableLiveDataMyLink2?.value = filter.toMutableList()
                                             Log.d("Delete", "onViewCreated: success")
                                         }
                                         .addOnFailureListener{
@@ -271,7 +271,9 @@ class PhotoSetListFragment : Fragment() {
                     //
                 }
 
-                appMainViewModel?.setMutableLiveDataMyLink2(myLinks2)
+                if (myLinks2 != null) {
+                    appMainViewModel?.setMutableLiveDataMyLink2(myLinks2.toMutableList())
+                }
 
             }
 
@@ -303,13 +305,15 @@ class PhotoSetListFragment : Fragment() {
         val firebaseUtilsApp = FirebaseUtilsApp()
         addToSetButton.setOnClickListener{
 
+            val pathString = "memories"
             firebaseUtilsApp.addToFireStorage(
                 uri,
                 set,
 /*                db,
                 storageReference,*/
                 context,
-                requireActivity()
+                requireActivity(),
+                pathString
             ){ aBoolean: Boolean ->
                 if (aBoolean) {
                     dialog.dismiss()

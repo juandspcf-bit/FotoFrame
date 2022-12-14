@@ -71,7 +71,7 @@ class SettingsFragment : Fragment() {
 
 
         val delay = sf.getInt("sliderScrollTimeInSec", 0)
-        when(sf.getInt("transitionAnimation", 0)){
+        when(sf.getInt("transitionAnimation", 3)){
             0-> binding.transitionAnimationTextView.text =  getString(R.string.depth_transformation)
             1-> binding.transitionAnimationTextView.text =  getString(R.string.cube_in_depth_transformation)
             2-> binding.transitionAnimationTextView.text =  getString(R.string.clock_spin_transformation)

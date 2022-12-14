@@ -138,15 +138,16 @@ class ListPhotosFragmentV2 : Fragment() {
                 val set = textInputLayout.editText!!.text.toString()
                 val data: MutableMap<String, Any> = HashMap()
                 data["name"] = set
-                appMainViewModel!!.mutableLiveDataSets.value!!.add(set)
-
+                appMainViewModel?.mutableLiveDataSets?.value?.add(set)
+                val pathString = "memories"
                 fireBaseUtilsApp.addSetToDataBase(data){ status->
                     if (status=="success"){
                         fireBaseUtilsApp.addToFireStorage(
                             uri,
                             set,
                             context,
-                            requireActivity()
+                            requireActivity(),
+                            pathString,
                         ) { aBoolean: Boolean ->
                             if (aBoolean) {
                                 dialog.dismiss()
@@ -173,12 +174,13 @@ class ListPhotosFragmentV2 : Fragment() {
                 addToSetButton.isEnabled = false
                 val set = editText.text.toString()
 
-
+                val pathString = "memories"
                 fireBaseUtilsApp.addToFireStorage(
                     uri,
                     set,
                     context,
-                    requireActivity()
+                    requireActivity(),
+                    pathString
                 ) { aBoolean: Boolean ->
                     if (aBoolean) {
                         dialog.dismiss()

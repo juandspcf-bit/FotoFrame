@@ -35,13 +35,13 @@ class FirebaseUtilsApp {
 
     fun addToFireStorage(uri: Uri?,
                          set: String,
-/*                         db: FirebaseFirestore,
-                         storageReference: StorageReference,*/
                          context: Context?,
                          activity: Activity?,
+                         pathString: String,
                          resultStatus: (Boolean) -> Unit) {
         uri?.let {
-            storeImageInDB(uri, set, db, storageReference,context, activity, resultStatus)
+
+            storeImageInDB(uri, set, db, storageReference,context, activity, pathString,resultStatus)
         }
     }
 
@@ -51,10 +51,11 @@ class FirebaseUtilsApp {
                                storageReference: StorageReference,
                                context: Context?,
                                activity: Activity?,
+                               pathString: String,
                                resultStatus: (Boolean) -> Unit) {
         val name = "my_image_" + Timestamp.now().seconds
         val filePath = storageReference
-            .child("memories")
+            .child(pathString)
             .child(name)
 
         val collectionReference = db
@@ -218,7 +219,7 @@ class FirebaseUtilsApp {
     }
 
 
-    fun getSets(callback: (List<String>)-> Unit){
+    fun getSets(callback: (MutableList<String>)-> Unit){
         val collectionReferenceSets = db.collection("sets")
 
         collectionReferenceSets.addSnapshotListener { querySnapshot, _ ->
@@ -229,7 +230,7 @@ class FirebaseUtilsApp {
                     .documents
                     .map { it.data?.get("name") as String }
 
-                callback(mapList)
+                callback(mapList.toMutableList())
 
 
             }
