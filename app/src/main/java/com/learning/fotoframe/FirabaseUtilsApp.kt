@@ -55,11 +55,11 @@ class FirebaseUtilsApp {
                                resultStatus: (Boolean) -> Unit) {
         val name = "my_image_" + Timestamp.now().seconds
         val filePath = storageReference
-            .child(pathString)
+            .child(pathString+"memories")
             .child(name)
 
         val collectionReference = db
-            .collection("links")
+            .collection(pathString+"links")
 
         filePath.putFile(uriMain).addOnSuccessListener {
             filePath.downloadUrl.addOnSuccessListener { uri ->

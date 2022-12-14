@@ -139,7 +139,7 @@ class ListPhotosFragmentV2 : Fragment() {
                 val data: MutableMap<String, Any> = HashMap()
                 data["name"] = set
                 appMainViewModel?.mutableLiveDataSets?.value?.add(set)
-                val pathString = "memories"
+                val pathString = ""
                 fireBaseUtilsApp.addSetToDataBase(data){ status->
                     if (status=="success"){
                         fireBaseUtilsApp.addToFireStorage(
@@ -174,7 +174,7 @@ class ListPhotosFragmentV2 : Fragment() {
                 addToSetButton.isEnabled = false
                 val set = editText.text.toString()
 
-                val pathString = "memories"
+                val pathString = ""
                 fireBaseUtilsApp.addToFireStorage(
                     uri,
                     set,

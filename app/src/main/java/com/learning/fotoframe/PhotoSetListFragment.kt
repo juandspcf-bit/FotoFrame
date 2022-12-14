@@ -305,7 +305,7 @@ class PhotoSetListFragment : Fragment() {
         val firebaseUtilsApp = FirebaseUtilsApp()
         addToSetButton.setOnClickListener{
 
-            val pathString = "memories"
+            val pathString = ""
             firebaseUtilsApp.addToFireStorage(
                 uri,
                 set,
