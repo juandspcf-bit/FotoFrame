@@ -59,8 +59,8 @@ class SelectedSetV2Fragment : Fragment() {
         })
         binding.button.setOnClickListener { //if(SelectSetFragment.this.position==-1) return;
 
-
-            FirebaseUtilsApp().getAllElements(editText.text.toString()){
+            var user = ""
+            FirebaseUtilsApp().getAllElements(user, editText.text.toString()){
                 myLinkList.clear()
                 myLinkList.addAll(0,it)
                 appMainViewModel.setMutableLiveDataMyLink(myLinkList)

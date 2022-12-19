@@ -35,7 +35,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.FirebaseApp
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -50,7 +49,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.stream.Collectors
 
 
 class ListPhotosFragmentV2 : Fragment() {
@@ -139,15 +137,15 @@ class ListPhotosFragmentV2 : Fragment() {
                 val data: MutableMap<String, Any> = HashMap()
                 data["name"] = set
                 appMainViewModel?.mutableLiveDataSets?.value?.add(set)
-                val pathString = ""
-                fireBaseUtilsApp.addSetToDataBase(data){ status->
+                val user = ""
+                fireBaseUtilsApp.addSetToDataBase(user, data){ status->
                     if (status=="success"){
                         fireBaseUtilsApp.addToFireStorage(
                             uri,
                             set,
                             context,
                             requireActivity(),
-                            pathString,
+                            user,
                         ) { aBoolean: Boolean ->
                             if (aBoolean) {
                                 dialog.dismiss()
@@ -222,7 +220,8 @@ class ListPhotosFragmentV2 : Fragment() {
         FirebaseApp.initializeApp(requireContext())
         db = FirebaseFirestore.getInstance()
 
-        fireBaseUtilsApp.getSets { sets ->
+        val user = ""
+        fireBaseUtilsApp.getSets(user) { sets ->
             appMainViewModel?.setMutableLiveDataSets(sets)
         }
 
@@ -282,7 +281,8 @@ class ListPhotosFragmentV2 : Fragment() {
             val flags = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_VISIBLE)
             decorView.systemUiVisibility = flags
         }
-        fireBaseUtilsApp.getSets { strings ->
+        val user = ""
+        fireBaseUtilsApp.getSets(user) { strings ->
             val map = strings.map { set -> SetWithBoolean(set, isVisible) }
             showRecyclerView(map)
         }
@@ -325,7 +325,8 @@ class ListPhotosFragmentV2 : Fragment() {
 
 
                 viewsInMyLinkRowHolder.rowSetDeleteButton.setOnClickListener {
-                    fireBaseUtilsApp.getAllElements(list[position].set){myLinks ->
+                    var user = ""
+                    fireBaseUtilsApp.getAllElements(user, list[position].set){myLinks ->
                         Log.d(TAG, "showRecyclerView: $myLinks")
                         val elementsToDelete = myLinks.map { myLink -> myLink.storageName }
 
@@ -343,8 +344,8 @@ class ListPhotosFragmentV2 : Fragment() {
                 }
 
                 viewsInMyLinkRowHolder.rowPlayButton.setOnClickListener {
-
-                    fireBaseUtilsApp.getAllElements(list[position].set){
+                    var user = ""
+                    fireBaseUtilsApp.getAllElements(user, list[position].set){
                         appMainViewModel?.setMutableLiveDataMyLink(it)
                     }
 

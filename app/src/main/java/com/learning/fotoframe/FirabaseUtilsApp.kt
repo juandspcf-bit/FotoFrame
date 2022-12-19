@@ -13,7 +13,6 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import android.util.Size
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -37,11 +36,11 @@ class FirebaseUtilsApp {
                          set: String,
                          context: Context?,
                          activity: Activity?,
-                         pathString: String,
+                         user: String,
                          resultStatus: (Boolean) -> Unit) {
         uri?.let {
 
-            storeImageInDB(uri, set, db, storageReference,context, activity, pathString,resultStatus)
+            storeImageInDB(uri, set, db, storageReference,context, activity, user,resultStatus)
         }
     }
 
@@ -51,15 +50,15 @@ class FirebaseUtilsApp {
                                storageReference: StorageReference,
                                context: Context?,
                                activity: Activity?,
-                               pathString: String,
+                               user: String,
                                resultStatus: (Boolean) -> Unit) {
         val name = "my_image_" + Timestamp.now().seconds
         val filePath = storageReference
-            .child(pathString+"memories")
+            .child(user+"memories")
             .child(name)
 
         val collectionReference = db
-            .collection(pathString+"links")
+            .collection(user+"links")
 
         filePath.putFile(uriMain).addOnSuccessListener {
             filePath.downloadUrl.addOnSuccessListener { uri ->
@@ -68,7 +67,8 @@ class FirebaseUtilsApp {
                 if (uriThumbnail==null){
 
                 }else{
-                    storeUriThumbnail(uriThumbnail, name, storageReference){
+                    var user = ""
+                    storeUriThumbnail(user, uriThumbnail, name, storageReference){
                         storeMyLinkInDB(set, uri, filePath, collectionReference, it, resultStatus)
                     }
                 }
@@ -78,12 +78,13 @@ class FirebaseUtilsApp {
         }.addOnFailureListener { resultStatus(false) }
     }
 
-    private fun storeUriThumbnail(uriThumbnail: Uri,
+    private fun storeUriThumbnail(user: String,
+                                  uriThumbnail: Uri,
                                   name: String,
                                   storageReference: StorageReference,
                                   callback:(Uri)->Unit) {
         val filePath = storageReference
-            .child("memoriesThumbnail")
+            .child(user+"memoriesThumbnail")
             .child(name)
         filePath.putFile(uriThumbnail).addOnSuccessListener {
             filePath.downloadUrl.addOnSuccessListener {  uri ->
@@ -162,9 +163,7 @@ class FirebaseUtilsApp {
                     fos.close()
 
                     context?.let { it1 ->
-                        val uriForFile =
-                            FileProvider.getUriForFile(it1, it1.packageName + ".provider", file)
-                        return uriForFile
+                        return FileProvider.getUriForFile(it1, it1.packageName + ".provider", file)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -219,8 +218,8 @@ class FirebaseUtilsApp {
     }
 
 
-    fun getSets(callback: (MutableList<String>)-> Unit){
-        val collectionReferenceSets = db.collection("sets")
+    fun getSets(user: String, callback: (MutableList<String>)-> Unit){
+        val collectionReferenceSets = db.collection(user+"sets")
 
         collectionReferenceSets.addSnapshotListener { querySnapshot, _ ->
 
@@ -239,8 +238,8 @@ class FirebaseUtilsApp {
 
 
 
-    fun addSetToDataBase(data: MutableMap<String, Any>, callback: (String) -> Unit){
-        val collectionReferenceSets = db.collection("sets")
+    fun addSetToDataBase(user: String, data: MutableMap<String, Any>, callback: (String) -> Unit){
+        val collectionReferenceSets = db.collection(user+"sets")
         collectionReferenceSets.add(data).addOnSuccessListener {
             callback("success")
         }.addOnFailureListener {
@@ -249,8 +248,8 @@ class FirebaseUtilsApp {
     }
 
 
-    fun getAllElements(set:String, callback: (List<ListPhotosFragmentV2.MyLink>) -> Unit){
-        val collectionReference = db.collection("links")
+    fun getAllElements(user:String, set:String, callback: (List<ListPhotosFragmentV2.MyLink>) -> Unit){
+        val collectionReference = db.collection(user+"links")
         collectionReference.whereEqualTo("set", set)
             .get()
             .addOnCompleteListener { task ->
@@ -336,8 +335,5 @@ class FirebaseUtilsApp {
             )
         }
     }
-
-
-
 
 }
