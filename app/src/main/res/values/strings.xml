@@ -17,4 +17,11 @@
     <string name="right">right</string>
     <string name="left">left</string>
     <string name="back_and_forth">Back and Forth</string>
+    <string name="login">login</string>
+    <string name="login_user">login user</string>
+    <string name="slide">Slide</string>
+    <string name="scale">Scale</string>
+    <string name="swap">Swap</string>
+    <string name="drop">Drop</string>
+    <string name="color">Color</string>
 </resources>

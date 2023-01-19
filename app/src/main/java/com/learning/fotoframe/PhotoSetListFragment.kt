@@ -17,15 +17,17 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.MaterialAutoCompleteTextView
-import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.learning.fotoframe.adapters.recyclerView.RecyclerViewAdapter
@@ -39,6 +41,7 @@ import com.squareup.picasso.Picasso
 
 class PhotoSetListFragment : Fragment() {
     private lateinit var binding: FragmentPhotoSetListBinding
+    private lateinit var controller: NavController
     private lateinit var db: FirebaseFirestore
     private lateinit var storageReference: StorageReference
     private var appMainViewModel: AppMainViewModel? = null
@@ -48,6 +51,7 @@ class PhotoSetListFragment : Fragment() {
     private var targetSize: Int = 0
     private var isDeleting:Boolean = false
     private lateinit var set:String
+    private lateinit var auth: FirebaseAuth
 
 
     private var startOpenForResult = registerForActivityResult<Intent, ActivityResult>(
@@ -85,12 +89,12 @@ class PhotoSetListFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        controller = NavHostFragment.findNavController(this)
         appMainViewModel = ViewModelProvider(requireActivity())[AppMainViewModel::class.java]
         FirebaseApp.initializeApp(requireContext())
         db = FirebaseFirestore.getInstance()
         storageReference = FirebaseStorage.getInstance().reference
-
+        auth = Firebase.auth
     }
 
     override fun onCreateView(
@@ -110,7 +114,12 @@ class PhotoSetListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        val user = auth.currentUser
+        if (user==null){
+            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT)
+            return
+        }
+        val userEmail = user.email
 
         appMainViewModel?.mutableLiveDataMyLink2?.observe(viewLifecycleOwner) { myList ->
             visibleList = myList
@@ -121,8 +130,11 @@ class PhotoSetListFragment : Fragment() {
             showRecyclerView(visibleList)
         }
 
-        materialToolbar = view.findViewById<MaterialToolbar>(R.id.photoListTopAppBar)
-        materialToolbar.setOnMenuItemClickListener { menuItem ->
+        binding.photoListTopAppBar.setNavigationOnClickListener {
+            controller.popBackStack()
+        }
+
+        binding.photoListTopAppBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.deleteItems -> {
                     if(isDeleting) {
@@ -141,10 +153,10 @@ class PhotoSetListFragment : Fragment() {
                         isDeleting = true
                         for (myLink2 in elementsToDelete){
                             storageReference
-                                .child("memories")
+                                .child("$userEmail-memories")
                                 .child(myLink2.storageName).delete().addOnSuccessListener {
                                     Log.d("Delete", "onViewCreated: success")
-                                    db.collection("links").document(myLink2.storageName)
+                                    db.collection("$userEmail-links").document(myLink2.storageName)
                                         .delete()
                                         .addOnSuccessListener {
                                             val filter = visibleList
@@ -177,9 +189,6 @@ class PhotoSetListFragment : Fragment() {
                                     Log.d("Delete", "onViewCreated: error")
                                 }
                         }
-
-
-
 
                     }
 
@@ -256,10 +265,19 @@ class PhotoSetListFragment : Fragment() {
         arguments?.let {
             val args = PhotoSetListFragmentArgs.fromBundle(it)
             Log.d("SET", "onStart: ${args.set}")
-            materialToolbar.title=args.set
+            binding.photoListTopAppBar.title=args.set
             set = args.set
 
-            val collectionReferenceLinks = db.collection("links");
+            val user = auth.currentUser
+            if (user==null){
+                Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT)
+                return
+            }
+            val userEmail = user.email
+
+            Log.d("pathString", "storeImageInDB: $userEmail-memories")
+
+            val collectionReferenceLinks = db.collection("$userEmail-links");
             collectionReferenceLinks.whereEqualTo("set", args.set).addSnapshotListener { query, e ->
                 val documents = query?.documents
                 val myLinks2 = documents?.map { document ->
@@ -305,15 +323,20 @@ class PhotoSetListFragment : Fragment() {
         val firebaseUtilsApp = FirebaseUtilsApp()
         addToSetButton.setOnClickListener{
 
-            val pathString = ""
+            val user = auth.currentUser
+            if (user==null){
+                Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT)
+                return@setOnClickListener
+            }
+            val userEmail = user.email
+
+            Log.d("pathString", "storeImageInDB: $userEmail-memories")
             firebaseUtilsApp.addToFireStorage(
                 uri,
                 set,
-/*                db,
-                storageReference,*/
                 context,
                 requireActivity(),
-                pathString
+                userEmail
             ){ aBoolean: Boolean ->
                 if (aBoolean) {
                     dialog.dismiss()

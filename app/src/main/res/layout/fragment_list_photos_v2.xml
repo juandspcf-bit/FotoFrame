@@ -25,6 +25,7 @@
                 android:background="#c62828"
                 android:elevation="3dp"
                 app:menu="@menu/menu_for_top_bar"
+
                 app:title="@string/my_beautiful_memories"
                 app:titleCentered="true"
                 app:titleTextColor="@color/white" />

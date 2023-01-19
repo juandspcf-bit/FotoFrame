@@ -99,9 +99,9 @@ class ShowSlidesFragmentV2: Fragment() {
 
             }
             sliderView.setSliderAdapter(sliderAdapter)
-            sliderView.setIndicatorAnimation(IndicatorAnimationType.SWAP)
+            sliderView.setIndicatorAnimation(IndicatorAnimationType.SLIDE)
 
-            val delay = sf.getInt("sliderScrollTimeInSec", 0)
+            val delay = sf.getInt("sliderScrollTimeInSec", 3)
             sliderView.scrollTimeInSec = delay
 
             when(sf.getInt("transitionAnimation", 0)){
@@ -118,6 +118,13 @@ class ShowSlidesFragmentV2: Fragment() {
                 2-> sliderView.autoCycleDirection = SliderView.AUTO_CYCLE_DIRECTION_BACK_AND_FORTH
             }
 
+            when(sf.getInt("indicator", 0)){
+                0-> sliderView.setIndicatorAnimation(IndicatorAnimationType.SLIDE)
+                1-> sliderView.setIndicatorAnimation(IndicatorAnimationType.SCALE)
+                2-> sliderView.setIndicatorAnimation(IndicatorAnimationType.SWAP)
+                3-> sliderView.setIndicatorAnimation(IndicatorAnimationType.DROP)
+                4-> sliderView.setIndicatorAnimation(IndicatorAnimationType.COLOR)
+            }
 
             sliderView.startAutoCycle()
 

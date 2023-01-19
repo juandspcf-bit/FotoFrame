@@ -12,6 +12,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.learning.fotoframe.databinding.FragmentSettingsBinding
 import com.learning.fotoframe.viewmodels.SettingsViewModel
@@ -21,6 +23,7 @@ import com.smarteist.autoimageslider.SliderView
 
 class SettingsFragment : Fragment() {
     private lateinit var settingsViewModel: SettingsViewModel
+    private lateinit var controller: NavController
     lateinit var binding: FragmentSettingsBinding
     private lateinit var sf: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
@@ -28,7 +31,7 @@ class SettingsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settingsViewModel = ViewModelProvider(requireActivity())[SettingsViewModel::class.java]
-
+        controller = NavHostFragment.findNavController(this)
         val sharedPreferences =
             activity?.getSharedPreferences("my_sf", AppCompatActivity.MODE_PRIVATE)
         if(sharedPreferences !=null){
@@ -62,15 +65,17 @@ class SettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         registerForContextMenu(binding.animateTransitionButton)
         registerForContextMenu(binding.cycleButton)
-
+        registerForContextMenu(binding.indicatorAnimationButton)
 
         binding.SetDelayButton.setOnClickListener {
             showBottomDialog()
         }
 
+        binding.backFromSettingsButton.setOnClickListener {
+            controller.popBackStack()
+        }
 
-
-        val delay = sf.getInt("sliderScrollTimeInSec", 0)
+        val delay = sf.getInt("sliderScrollTimeInSec", 3)
         when(sf.getInt("transitionAnimation", 3)){
             0-> binding.transitionAnimationTextView.text =  getString(R.string.depth_transformation)
             1-> binding.transitionAnimationTextView.text =  getString(R.string.cube_in_depth_transformation)
@@ -84,6 +89,15 @@ class SettingsFragment : Fragment() {
             1-> binding.cycleTextView.text = getString(R.string.left)
             2-> binding.cycleTextView.text = getString(R.string.back_and_forth)
         }
+
+        when(sf.getInt("indicator", 0)){
+            0-> binding.indicatorTextView.text =  getString(R.string.slide)
+            1-> binding.indicatorTextView.text =  getString(R.string.scale)
+            2-> binding.indicatorTextView.text =  getString(R.string.swap)
+            3-> binding.indicatorTextView.text =  getString(R.string.drop)
+            4-> binding.indicatorTextView.text =  getString(R.string.color)
+        }
+
         settingsViewModel.sliderScrollTimeInSec.value = delay
         val delay1 = "$delay secs"
         binding.delayTextView.text = delay1
@@ -106,6 +120,11 @@ class SettingsFragment : Fragment() {
         if(v.id==R.id.cycleButton){
             menu.setHeaderTitle("Pick option")
             requireActivity().menuInflater.inflate(R.menu.cycle_options_menu, menu)
+        }
+
+        if(v.id==R.id.indicatorAnimationButton){
+            menu.setHeaderTitle("Pick option")
+            requireActivity().menuInflater.inflate(R.menu.menu_indicator_animation, menu)
         }
 
     }
@@ -170,6 +189,46 @@ class SettingsFragment : Fragment() {
                 editor.apply{
                     putInt("cycle",  2)
                     binding.cycleTextView.text = getString(R.string.back_and_forth)
+                    commit()
+                }
+            }
+
+            R.id.indicator_1-> {
+                editor.apply{
+                    putInt("indicator",  0)
+                    binding.indicatorTextView.text = getString(R.string.slide)
+                    commit()
+                }
+            }
+
+            R.id.indicator_2-> {
+                editor.apply{
+                    putInt("indicator", 1)
+                    binding.indicatorTextView.text = getString(R.string.scale)
+                    commit()
+                }
+            }
+
+            R.id.indicator_3-> {
+                editor.apply{
+                    putInt("indicator", 2)
+                    binding.indicatorTextView.text = getString(R.string.swap)
+                    commit()
+                }
+            }
+
+            R.id.indicator_4-> {
+                editor.apply{
+                    putInt("indicator", 3)
+                    binding.indicatorTextView.text = getString(R.string.drop)
+                    commit()
+                }
+            }
+
+            R.id.indicator_5-> {
+                editor.apply{
+                    putInt("indicator", 4)
+                    binding.indicatorTextView.text = getString(R.string.color)
                     commit()
                 }
             }

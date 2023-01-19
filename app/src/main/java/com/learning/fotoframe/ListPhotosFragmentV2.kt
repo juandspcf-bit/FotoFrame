@@ -35,7 +35,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.learning.fotoframe.adapters.recyclerView.RecyclerViewAdapter
@@ -53,12 +56,13 @@ import kotlinx.coroutines.withContext
 
 class ListPhotosFragmentV2 : Fragment() {
     private lateinit var binding: FragmentListPhotosV2Binding
-    private var controller: NavController? = null
+    private lateinit var controller: NavController
     private lateinit var db: FirebaseFirestore
     private lateinit var storageReference: StorageReference
     private var appMainViewModel: AppMainViewModel? = null
     private var fireBaseUtilsApp: FirebaseUtilsApp = FirebaseUtilsApp()
     private lateinit var materialToolbar:MaterialToolbar
+    private lateinit var auth: FirebaseAuth
 
     private var startOpenForResult = registerForActivityResult<Intent, ActivityResult>(
         ActivityResultContracts.StartActivityForResult()
@@ -108,6 +112,15 @@ class ListPhotosFragmentV2 : Fragment() {
     }
 
     private fun showBottomDialog(uri: Uri?) {
+
+        val user = auth.currentUser
+        if (user==null){
+            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val userEmail= user.email
+
+
         val dialog = BottomSheetDialog(requireContext())
         val vista = LayoutInflater.from(context).inflate(R.layout.selection_set_botton_dialog, null)
         val imageView = vista.findViewById<ImageView>(R.id.selectedImgImageView)
@@ -128,6 +141,8 @@ class ListPhotosFragmentV2 : Fragment() {
             editText?.setSimpleItems(setsArrays)
         })
 
+
+
         addToSetButton.setOnClickListener {
             if (textInputLayout.editText != null && textInputLayout.editText!!.text.toString()
                     .isNotEmpty()
@@ -137,15 +152,15 @@ class ListPhotosFragmentV2 : Fragment() {
                 val data: MutableMap<String, Any> = HashMap()
                 data["name"] = set
                 appMainViewModel?.mutableLiveDataSets?.value?.add(set)
-                val user = ""
-                fireBaseUtilsApp.addSetToDataBase(user, data){ status->
+
+                fireBaseUtilsApp.addSetToDataBase(userEmail, data){ status->
                     if (status=="success"){
                         fireBaseUtilsApp.addToFireStorage(
                             uri,
                             set,
                             context,
                             requireActivity(),
-                            user,
+                            userEmail,
                         ) { aBoolean: Boolean ->
                             if (aBoolean) {
                                 dialog.dismiss()
@@ -172,13 +187,14 @@ class ListPhotosFragmentV2 : Fragment() {
                 addToSetButton.isEnabled = false
                 val set = editText.text.toString()
 
-                val pathString = ""
+
+                Log.d("pathString", "storeImageInDB: $userEmail-memories")
                 fireBaseUtilsApp.addToFireStorage(
                     uri,
                     set,
                     context,
                     requireActivity(),
-                    pathString
+                    userEmail
                 ) { aBoolean: Boolean ->
                     if (aBoolean) {
                         dialog.dismiss()
@@ -220,8 +236,15 @@ class ListPhotosFragmentV2 : Fragment() {
         FirebaseApp.initializeApp(requireContext())
         db = FirebaseFirestore.getInstance()
 
-        val user = ""
-        fireBaseUtilsApp.getSets(user) { sets ->
+        auth = Firebase.auth
+
+        val user = auth.currentUser
+        if (user==null){
+            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT).show()
+            return
+        }
+        var pathString= user.email
+        fireBaseUtilsApp.getSets(pathString) { sets ->
             appMainViewModel?.setMutableLiveDataSets(sets)
         }
 
@@ -259,6 +282,9 @@ class ListPhotosFragmentV2 : Fragment() {
                 R.id.settings ->{
                     controller?.navigate(R.id.action_listPhotosFragmentV2_to_settingsFragment)
                 }
+                R.id.login ->{
+                    controller?.navigate(R.id.action_listPhotosFragmentV2_to_fragmentLogin)
+                }
             }
             false
         }
@@ -281,8 +307,15 @@ class ListPhotosFragmentV2 : Fragment() {
             val flags = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_VISIBLE)
             decorView.systemUiVisibility = flags
         }
-        val user = ""
-        fireBaseUtilsApp.getSets(user) { strings ->
+        val user = auth.currentUser
+        if (user==null){
+            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT)
+            return
+        }
+        val userEmail = user.email
+
+        Log.d("pathString", "storeImageInDB: $userEmail-memories")
+        fireBaseUtilsApp.getSets(userEmail) { strings ->
             val map = strings.map { set -> SetWithBoolean(set, isVisible) }
             showRecyclerView(map)
         }
@@ -291,6 +324,14 @@ class ListPhotosFragmentV2 : Fragment() {
     }
 
     private fun showRecyclerView(list: List<SetWithBoolean>) {
+        auth = Firebase.auth
+
+        val user = auth.currentUser
+        if (user==null){
+            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT).show()
+            return
+        }
+        var userEmail = user.email
 
         val recyclerViewBuilder = RecyclerViewBuilder(
             list.size,
@@ -310,7 +351,7 @@ class ListPhotosFragmentV2 : Fragment() {
             { position: Int, holder: ViewsInRowHolder?, adapter: RecyclerViewAdapter ->
                 val viewsInMyLinkRowHolder = holder as ViewsInMyLinkRowHolder
                 viewsInMyLinkRowHolder.rowSetNameTextView.text = list[position].set
-                val collectionReferenceLinks = db.collection("links");
+                val collectionReferenceLinks = db.collection("$userEmail-links");
                 collectionReferenceLinks.whereEqualTo("set", list[position].set).limit(1)
                     .addSnapshotListener { snapShoot, _ ->
                         if (snapShoot?.isEmpty == true) return@addSnapshotListener
@@ -325,14 +366,19 @@ class ListPhotosFragmentV2 : Fragment() {
 
 
                 viewsInMyLinkRowHolder.rowSetDeleteButton.setOnClickListener {
-                    var user = ""
-                    fireBaseUtilsApp.getAllElements(user, list[position].set){myLinks ->
+                    val user = auth.currentUser
+                    if (user==null){
+                        Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                    val pathString = user.email
+                    fireBaseUtilsApp.getAllElements(pathString, list[position].set){myLinks ->
                         Log.d(TAG, "showRecyclerView: $myLinks")
                         val elementsToDelete = myLinks.map { myLink -> myLink.storageName }
 
                         val coroutineScope = CoroutineScope(Dispatchers.Main.immediate)
                         coroutineScope.launch {
-                            backGroundCoroutine(elementsToDelete, list, position)
+                            backGroundCoroutine(elementsToDelete, list, position, userEmail)
                         }
 
 
@@ -344,8 +390,13 @@ class ListPhotosFragmentV2 : Fragment() {
                 }
 
                 viewsInMyLinkRowHolder.rowPlayButton.setOnClickListener {
-                    var user = ""
-                    fireBaseUtilsApp.getAllElements(user, list[position].set){
+                    val user = auth.currentUser
+                    if (user==null){
+                        Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                    val pathString = user.email
+                    fireBaseUtilsApp.getAllElements(pathString, list[position].set){
                         appMainViewModel?.setMutableLiveDataMyLink(it)
                     }
 
@@ -364,10 +415,16 @@ class ListPhotosFragmentV2 : Fragment() {
 
     private suspend fun backGroundCoroutine(elementsToDelete: List<String>,
                                             list: List<SetWithBoolean>,
-                                            position: Int){
+                                            position: Int,
+                                            userEmail:String?){
 
         withContext(Dispatchers.IO){
-            deleteSet(elementsToDelete, list, position)
+            deleteSet(
+                elementsToDelete,
+                list,
+                position,
+                userEmail
+            )
         }
 
     }
@@ -375,16 +432,17 @@ class ListPhotosFragmentV2 : Fragment() {
     private fun deleteSet(
         elementsToDelete: List<String>,
         list: List<SetWithBoolean>,
-        position: Int
+        position: Int,
+        userEmail:String?
     ) {
 
         Log.d(TAG, "deleteSet: call two times")
         for (element in elementsToDelete) {
             Log.d(TAG, "deleteSet: $element")
             storageReference
-                .child("memories")
+                .child("$userEmail-memories")
                 .child(element).delete().addOnSuccessListener {
-                    db.collection("links").document(element)
+                    db.collection("$userEmail-links").document(element)
                         .delete()
                         .addOnSuccessListener {
                             storageReference
@@ -393,7 +451,6 @@ class ListPhotosFragmentV2 : Fragment() {
                                 }.addOnFailureListener {
                                     Log.d("Delete", "memoriesThumbnail: error")
                                 }
-
                         }
                         .addOnFailureListener {
                             Log.d("Delete", "memories links: error")
@@ -404,22 +461,18 @@ class ListPhotosFragmentV2 : Fragment() {
         }
 
 
-        db.collection("sets")
+        db.collection("$userEmail-sets")
             .whereEqualTo("name", list[position].set).get()
             .addOnSuccessListener { documents ->
                 for (document in documents) {
                     val id = document.id
                     Log.d(TAG, "showRecyclerView id: $id")
-                    db.collection("sets").document(id).delete()
+                    db.collection("$userEmail-sets").document(id).delete()
                 }
             }
             .addOnFailureListener { exception ->
                 Log.w(TAG, "Error getting documents: ", exception)
             }
-
-
-
-
 
     }
 

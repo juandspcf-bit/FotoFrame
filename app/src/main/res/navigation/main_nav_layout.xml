@@ -29,6 +29,9 @@
         <action
             android:id="@+id/action_listPhotosFragmentV2_to_settingsFragment"
             app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_listPhotosFragmentV2_to_fragmentLogin"
+            app:destination="@id/fragmentLogin" />
     </fragment>
     <fragment
         android:id="@+id/photoSetListFragment"
@@ -49,4 +52,24 @@
         android:name="com.learning.fotoframe.SettingsFragment"
         android:label="fragment_settings"
         tools:layout="@layout/fragment_settings" />
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="com.learning.fotoframe.SignUpFragment"
+        android:label="fragment_sign_up"
+        tools:layout="@layout/fragment_sign_up" >
+        <action
+            android:id="@+id/action_signUpFragment_to_listPhotosFragmentV22"
+            app:destination="@id/listPhotosFragmentV2" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentLogin"
+        android:name="com.learning.fotoframe.FragmentLogin"
+        android:label="FragmentLogin" >
+        <action
+            android:id="@+id/action_fragmentLogin_to_signUpFragment"
+            app:destination="@id/signUpFragment" />
+        <action
+            android:id="@+id/action_fragmentLogin_to_listPhotosFragmentV2"
+            app:destination="@id/listPhotosFragmentV2" />
+    </fragment>
 </navigation>

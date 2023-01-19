@@ -36,10 +36,10 @@ class FirebaseUtilsApp {
                          set: String,
                          context: Context?,
                          activity: Activity?,
-                         user: String,
+                         user: String?,
                          resultStatus: (Boolean) -> Unit) {
         uri?.let {
-
+            Log.d("PATH", "storeImageInDB: $user-memories")
             storeImageInDB(uri, set, db, storageReference,context, activity, user,resultStatus)
         }
     }
@@ -50,24 +50,22 @@ class FirebaseUtilsApp {
                                storageReference: StorageReference,
                                context: Context?,
                                activity: Activity?,
-                               user: String,
+                               user: String?,
                                resultStatus: (Boolean) -> Unit) {
         val name = "my_image_" + Timestamp.now().seconds
+        Log.d("PATH", "storeImageInDB: $user-memories")
         val filePath = storageReference
-            .child(user+"memories")
+            .child("$user-memories")
             .child(name)
 
         val collectionReference = db
-            .collection(user+"links")
+            .collection("$user-links")
 
         filePath.putFile(uriMain).addOnSuccessListener {
             filePath.downloadUrl.addOnSuccessListener { uri ->
-
                 val uriThumbnail = extractUriThumbnail(uriMain, name, filePath, context, activity)
                 if (uriThumbnail==null){
-
                 }else{
-                    var user = ""
                     storeUriThumbnail(user, uriThumbnail, name, storageReference){
                         storeMyLinkInDB(set, uri, filePath, collectionReference, it, resultStatus)
                     }
@@ -78,13 +76,13 @@ class FirebaseUtilsApp {
         }.addOnFailureListener { resultStatus(false) }
     }
 
-    private fun storeUriThumbnail(user: String,
+    private fun storeUriThumbnail(user: String?,
                                   uriThumbnail: Uri,
                                   name: String,
                                   storageReference: StorageReference,
                                   callback:(Uri)->Unit) {
         val filePath = storageReference
-            .child(user+"memoriesThumbnail")
+            .child("$user-memoriesThumbnail")
             .child(name)
         filePath.putFile(uriThumbnail).addOnSuccessListener {
             filePath.downloadUrl.addOnSuccessListener {  uri ->
@@ -218,8 +216,8 @@ class FirebaseUtilsApp {
     }
 
 
-    fun getSets(user: String, callback: (MutableList<String>)-> Unit){
-        val collectionReferenceSets = db.collection(user+"sets")
+    fun getSets(user: String?, callback: (MutableList<String>)-> Unit){
+        val collectionReferenceSets = db.collection("$user-sets")
 
         collectionReferenceSets.addSnapshotListener { querySnapshot, _ ->
 
@@ -238,8 +236,8 @@ class FirebaseUtilsApp {
 
 
 
-    fun addSetToDataBase(user: String, data: MutableMap<String, Any>, callback: (String) -> Unit){
-        val collectionReferenceSets = db.collection(user+"sets")
+    fun addSetToDataBase(user: String?, data: MutableMap<String, Any>, callback: (String) -> Unit){
+        val collectionReferenceSets = db.collection("$user-sets")
         collectionReferenceSets.add(data).addOnSuccessListener {
             callback("success")
         }.addOnFailureListener {
@@ -248,8 +246,8 @@ class FirebaseUtilsApp {
     }
 
 
-    fun getAllElements(user:String, set:String, callback: (List<ListPhotosFragmentV2.MyLink>) -> Unit){
-        val collectionReference = db.collection(user+"links")
+    fun getAllElements(user:String?, set:String, callback: (List<ListPhotosFragmentV2.MyLink>) -> Unit){
+        val collectionReference = db.collection("$user-links")
         collectionReference.whereEqualTo("set", set)
             .get()
             .addOnCompleteListener { task ->

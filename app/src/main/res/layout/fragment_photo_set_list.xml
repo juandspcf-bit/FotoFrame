@@ -25,6 +25,7 @@
                 android:background="#c62828"
                 android:elevation="3dp"
                 app:menu="@menu/menu_for_list_photo"
+                app:navigationIcon="@drawable/ic_baseline_arrow_back_24"
                 app:title="@string/my_beautiful_memories"
                 app:titleCentered="true"
                 app:titleTextColor="@color/white" />

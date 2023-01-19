@@ -49,20 +49,9 @@ class MainActivity : AppCompatActivity() {
             requestCanWriteSettings(this)
         }
 
-        // This is important if you want to use the storage service without issues
-        auth.signInAnonymously()
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
-                    Log.d(TAG, "signInAnonymously:success")
-                    val user = auth.currentUser
-                } else {
-                    // If sign in fails, display a message to the user.
-                    Log.w(TAG, "signInAnonymously:failure", task.exception)
-                    Toast.makeText(baseContext, "Authentication failed.",
-                        Toast.LENGTH_SHORT).show()
-                }
-            }
+
+
+
     }
 
     private fun startTask() {
@@ -73,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
 
     private suspend fun performSlowTask() {
         Log.i(TAG, "performSlowTask before")
@@ -139,6 +129,9 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = auth.currentUser
+        if(currentUser!=null){
+            Toast.makeText(this, "email ${currentUser.email}", Toast.LENGTH_SHORT).show()
+        }
 
 
     }
