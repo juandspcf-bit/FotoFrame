@@ -116,7 +116,7 @@ class PhotoSetListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val user = auth.currentUser
         if (user==null){
-            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT)
+            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT).show()
             return
         }
         val userEmail = user.email

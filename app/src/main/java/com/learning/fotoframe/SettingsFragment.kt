@@ -3,22 +3,26 @@ package com.learning.fotoframe
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.*
+import android.widget.*
 import androidx.fragment.app.Fragment
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.NumberPicker
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.learning.fotoframe.databinding.FragmentSettingsBinding
 import com.learning.fotoframe.viewmodels.SettingsViewModel
 import com.smarteist.autoimageslider.SliderAnimations
 import com.smarteist.autoimageslider.SliderView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class SettingsFragment : Fragment() {
@@ -27,6 +31,9 @@ class SettingsFragment : Fragment() {
     lateinit var binding: FragmentSettingsBinding
     private lateinit var sf: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
+    private lateinit var auth: FirebaseAuth
+    private lateinit var mySettings: MySettings
+    private var alreadyRead: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +45,11 @@ class SettingsFragment : Fragment() {
             sf = sharedPreferences
             editor = sf.edit()
         }
+
+        auth = Firebase.auth
+
+
+
 
 
     }
@@ -75,32 +87,62 @@ class SettingsFragment : Fragment() {
             controller.popBackStack()
         }
 
-        val delay = sf.getInt("sliderScrollTimeInSec", 3)
-        when(sf.getInt("transitionAnimation", 3)){
-            0-> binding.transitionAnimationTextView.text =  getString(R.string.depth_transformation)
-            1-> binding.transitionAnimationTextView.text =  getString(R.string.cube_in_depth_transformation)
-            2-> binding.transitionAnimationTextView.text =  getString(R.string.clock_spin_transformation)
-            3-> binding.transitionAnimationTextView.text =  getString(R.string.vertical_flip_transformation)
-            4-> binding.transitionAnimationTextView.text =  getString(R.string.cube_in_rotation_transformation)
-        }
+        binding.transitionAnimationTextView.text =""
+        binding.cycleTextView.text =""
+        binding.indicatorTextView.text = ""
+        binding.delayTextView.text = ""
 
-        when(sf.getInt("cycle", 0)){
-            0-> binding.cycleTextView.text = getString(R.string.right)
-            1-> binding.cycleTextView.text = getString(R.string.left)
-            2-> binding.cycleTextView.text = getString(R.string.back_and_forth)
+        val user = auth.currentUser
+        if (user==null){
+            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT).show()
+            mySettings = MySettings(0, 0 , 0)
+            return
         }
+        val userEmail = user.email
 
-        when(sf.getInt("indicator", 0)){
-            0-> binding.indicatorTextView.text =  getString(R.string.slide)
-            1-> binding.indicatorTextView.text =  getString(R.string.scale)
-            2-> binding.indicatorTextView.text =  getString(R.string.swap)
-            3-> binding.indicatorTextView.text =  getString(R.string.drop)
-            4-> binding.indicatorTextView.text =  getString(R.string.color)
+        FirebaseUtilsApp().getSettings(userEmail){
+            mySettings = it
+            Log.d("Settings Fragment", "onCreate: $mySettings")
+
+
+            val delay1 = "${mySettings.delay} secs"
+            binding.delayTextView.text = delay1
+
+            if (alreadyRead) return@getSettings
+
+            val coroutineScope = CoroutineScope(Dispatchers.Main.immediate)
+            coroutineScope.launch {
+                when(mySettings.transitionAnimation){
+                    0-> binding.transitionAnimationTextView.text =  getString(R.string.depth_transformation)
+                    1-> binding.transitionAnimationTextView.text =  getString(R.string.cube_in_depth_transformation)
+                    2-> binding.transitionAnimationTextView.text =  getString(R.string.clock_spin_transformation)
+                    3-> binding.transitionAnimationTextView.text =  getString(R.string.vertical_flip_transformation)
+                    4-> binding.transitionAnimationTextView.text =  getString(R.string.cube_in_rotation_transformation)
+                    else -> binding.transitionAnimationTextView.text =""
+                }
+
+                when(mySettings.cycle){
+                    0-> binding.cycleTextView.text = getString(R.string.right)
+                    1-> binding.cycleTextView.text = getString(R.string.left)
+                    2-> binding.cycleTextView.text = getString(R.string.back_and_forth)
+                    else -> binding.cycleTextView.text =""
+                }
+
+                when(mySettings.indicator){
+                    0-> binding.indicatorTextView.text =  getString(R.string.slide)
+                    1-> binding.indicatorTextView.text =  getString(R.string.scale)
+                    2-> binding.indicatorTextView.text =  getString(R.string.swap)
+                    3-> binding.indicatorTextView.text =  getString(R.string.drop)
+                    4-> binding.indicatorTextView.text =  getString(R.string.color)
+                    else -> binding.indicatorTextView.text = ""
+                }
+            }
+
+            alreadyRead = true
+
+
+
         }
-
-        settingsViewModel.sliderScrollTimeInSec.value = delay
-        val delay1 = "$delay secs"
-        binding.delayTextView.text = delay1
 
 
     }
@@ -130,6 +172,14 @@ class SettingsFragment : Fragment() {
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
+        val firebaseUtilsApp = FirebaseUtilsApp()
+        val user = auth.currentUser
+        if (user==null){
+            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT).show()
+            mySettings = MySettings(0, 0 , 0)
+            return false
+        }
+        val userEmail = user.email
         when (item.itemId) {
             R.id.option_1 -> {
                 editor.apply{
@@ -137,12 +187,18 @@ class SettingsFragment : Fragment() {
                     settingsViewModel.transitionAnimation.value = 0
                     saveAnimationTransformation(getString(R.string.depth_transformation))
                 }
+
+                mySettings.transitionAnimation = 0
+                firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
+
             }
             R.id.option_2 -> {
                 editor.apply{
                     putInt("transitionAnimation",  1)
                     settingsViewModel.transitionAnimation.value = 1
                     saveAnimationTransformation(getString(R.string.cube_in_depth_transformation))
+                    mySettings.transitionAnimation = 1
+                    firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
                 }
             }
             R.id.option_3 -> {
@@ -150,6 +206,8 @@ class SettingsFragment : Fragment() {
                     putInt("transitionAnimation",  2)
                     settingsViewModel.transitionAnimation.value = 2
                     saveAnimationTransformation(getString(R.string.clock_spin_transformation))
+                    mySettings.transitionAnimation = 2
+                    firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
                 }
             }
 
@@ -158,6 +216,8 @@ class SettingsFragment : Fragment() {
                     putInt("transitionAnimation",  3)
                     settingsViewModel.transitionAnimation.value = 4
                     saveAnimationTransformation(getString(R.string.vertical_flip_transformation))
+                    mySettings.transitionAnimation = 3
+                    firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
                 }
             }
 
@@ -166,6 +226,8 @@ class SettingsFragment : Fragment() {
                     putInt("transitionAnimation",  4)
                     settingsViewModel.transitionAnimation.value = 4
                     saveAnimationTransformation(getString(R.string.cube_in_rotation_transformation))
+                    mySettings.transitionAnimation = 4
+                    firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
                 }
             }
 
@@ -175,6 +237,8 @@ class SettingsFragment : Fragment() {
                     binding.cycleTextView.text = getString(R.string.right)
                     commit()
                 }
+                mySettings.cycle = 0
+                firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
             }
 
             R.id.cycle_option_2 -> {
@@ -183,6 +247,9 @@ class SettingsFragment : Fragment() {
                     binding.cycleTextView.text = getString(R.string.left)
                     commit()
                 }
+
+                mySettings.cycle = 1
+                firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
             }
 
             R.id.cycle_option_3-> {
@@ -191,6 +258,9 @@ class SettingsFragment : Fragment() {
                     binding.cycleTextView.text = getString(R.string.back_and_forth)
                     commit()
                 }
+
+                mySettings.cycle = 2
+                firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
             }
 
             R.id.indicator_1-> {
@@ -199,6 +269,9 @@ class SettingsFragment : Fragment() {
                     binding.indicatorTextView.text = getString(R.string.slide)
                     commit()
                 }
+
+                mySettings.indicator = 0
+                firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
             }
 
             R.id.indicator_2-> {
@@ -207,6 +280,8 @@ class SettingsFragment : Fragment() {
                     binding.indicatorTextView.text = getString(R.string.scale)
                     commit()
                 }
+                mySettings.indicator = 1
+                firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
             }
 
             R.id.indicator_3-> {
@@ -215,6 +290,8 @@ class SettingsFragment : Fragment() {
                     binding.indicatorTextView.text = getString(R.string.swap)
                     commit()
                 }
+                mySettings.indicator = 2
+                firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
             }
 
             R.id.indicator_4-> {
@@ -223,6 +300,8 @@ class SettingsFragment : Fragment() {
                     binding.indicatorTextView.text = getString(R.string.drop)
                     commit()
                 }
+                mySettings.indicator = 3
+                firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
             }
 
             R.id.indicator_5-> {
@@ -231,6 +310,9 @@ class SettingsFragment : Fragment() {
                     binding.indicatorTextView.text = getString(R.string.color)
                     commit()
                 }
+
+                mySettings.indicator = 4
+                firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
             }
 
         }
@@ -252,8 +334,10 @@ class SettingsFragment : Fragment() {
         numberPicker.maxValue = 50
         numberPicker.minValue = 1
 
-        val delay = sf.getInt("sliderScrollTimeInSec", 0)
+        val delay = mySettings.delay
         settingsViewModel.sliderScrollTimeInSec.value = delay
+
+
 
         numberPicker.value = delay
         setDelayButton.setOnClickListener {
@@ -265,6 +349,20 @@ class SettingsFragment : Fragment() {
                 commit()
                 dialog.dismiss()
             }
+
+            val firebaseUtilsApp = FirebaseUtilsApp()
+            val user = auth.currentUser
+            if (user==null){
+                Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT).show()
+                mySettings = MySettings(0, 0 , 0)
+                return@setOnClickListener
+            }
+            val userEmail = user.email
+            if (numberPicker.value.toString().toInt()>=3){
+                mySettings.delay = numberPicker.value
+                firebaseUtilsApp.addSettingsToDataBase(userEmail, mySettings)
+            }
+
         }
 
 
@@ -274,4 +372,24 @@ class SettingsFragment : Fragment() {
 
     }
 
+    data class MySettings(
+        var transitionAnimation: Int = 0,
+        var cycle: Int = 0,
+        var indicator: Int = 0,
+        var delay: Int = 3
+
+    )
+
+
+    override fun onResume() {
+        super.onResume()
+        val user = auth.currentUser
+        if (user==null){
+            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT)
+            return
+        }
+        val userEmail = user.email
+
+
+    }
 }

@@ -280,10 +280,10 @@ class ListPhotosFragmentV2 : Fragment() {
         binding.topAppBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.settings ->{
-                    controller?.navigate(R.id.action_listPhotosFragmentV2_to_settingsFragment)
+                    controller.navigate(R.id.action_listPhotosFragmentV2_to_settingsFragment)
                 }
                 R.id.login ->{
-                    controller?.navigate(R.id.action_listPhotosFragmentV2_to_fragmentLogin)
+                    controller.navigate(R.id.action_listPhotosFragmentV2_to_fragmentLogin)
                 }
             }
             false
@@ -309,7 +309,7 @@ class ListPhotosFragmentV2 : Fragment() {
         }
         val user = auth.currentUser
         if (user==null){
-            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT)
+            Toast.makeText(context, "Sign Up before", Toast.LENGTH_SHORT).show()
             return
         }
         val userEmail = user.email

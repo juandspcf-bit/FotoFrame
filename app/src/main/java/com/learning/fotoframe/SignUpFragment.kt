@@ -104,7 +104,10 @@ class SignUpFragment : Fragment() {
                     if (task.isSuccessful) {
                         // Sign in success, update UI with the signed-in user's information
                         Toast.makeText(context, "created", Toast.LENGTH_SHORT).show()
-                        val user = auth.currentUser
+
+                        val firebaseUtilsApp = FirebaseUtilsApp()
+                        firebaseUtilsApp.addSettingsToDataBase(email, SettingsFragment.MySettings(0, 0 , 0))
+                        controller.navigate(R.id.action_signUpFragment_to_listPhotosFragmentV22)
 
                     } else {
                         // If sign in fails, display a message to the user.

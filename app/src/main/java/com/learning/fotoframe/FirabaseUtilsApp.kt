@@ -234,6 +234,39 @@ class FirebaseUtilsApp {
         }
     }
 
+    fun getSettings(user: String?, callback: (SettingsFragment.MySettings) -> Unit){
+        val collectionReferenceSets = db.collection("$user-settings")
+
+        collectionReferenceSets.addSnapshotListener { querySnapshot, _ ->
+
+
+            querySnapshot?.let { querySnapshotNotNull ->
+
+
+                if (querySnapshotNotNull.isEmpty) return@addSnapshotListener
+                val mapList = querySnapshotNotNull
+                    .documents
+
+                val cycle = mapList[0].get("cycle").toString().toInt()
+                val indicator = mapList[0].get("indicator").toString().toInt()
+                val transitionAnimation = mapList[0].get("transitionAnimation").toString().toInt()
+                val delay = mapList[0].get("delay").toString().toInt()
+                callback(SettingsFragment.MySettings(transitionAnimation,  indicator, cycle, delay))
+                //return SettingsFragment.MySettings(0, 0 , 0)
+
+
+            }
+        }
+    }
+
+    fun addSettingsToDataBase(user: String?, setting: SettingsFragment.MySettings){
+        val collectionReferenceSettings = db.collection("$user-settings")
+        collectionReferenceSettings.document("$user")
+            .set(setting).addOnSuccessListener {  }
+            .addOnFailureListener {  }
+
+    }
+
 
 
     fun addSetToDataBase(user: String?, data: MutableMap<String, Any>, callback: (String) -> Unit){
